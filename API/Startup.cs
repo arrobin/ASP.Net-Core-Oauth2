@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Models;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -65,7 +66,7 @@ namespace API
                     options.UseMvc();
 
                     // Enable the token endpoint (required to use the password flow).
-                    options.EnableTokenEndpoint("/connect/token");
+                    options.EnableTokenEndpoint("/api/connect/token");
 
                     // Allow client applications to use the grant_type=password flow + Refresh Token Flow.
                     options.AllowPasswordFlow().AllowRefreshTokenFlow();
@@ -77,6 +78,15 @@ namespace API
                     options.AcceptAnonymousClients();
                 })
                 .AddValidation();
+            // Configure Identity to use the same JWT claims as OpenIddict instead
+            // of the legacy WS-Federation claims it uses by default (ClaimTypes),
+            // which saves you from doing the mapping in your authorization controller.
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.ClaimsIdentity.UserNameClaimType = OpenIdConnectConstants.Claims.Name;
+                options.ClaimsIdentity.UserIdClaimType = OpenIdConnectConstants.Claims.Subject;
+                options.ClaimsIdentity.RoleClaimType = OpenIdConnectConstants.Claims.Role;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

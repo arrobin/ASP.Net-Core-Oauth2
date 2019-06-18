@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenIddict.Validation;
 
 namespace API.Controllers
 {
@@ -10,6 +14,12 @@ namespace API.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public ValuesController(UserManager<ApplicationUser> userManager)
+        {
+            _userManager = userManager;
+        }
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
@@ -18,9 +28,11 @@ namespace API.Controllers
         }
 
         // GET api/values/5
+        [Authorize(AuthenticationSchemes = OpenIddictValidationDefaults.AuthenticationScheme, Roles = "merchant")]
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public async Task<ActionResult<string>> Get(int id)
         {
+            var info = await _userManager.GetUserAsync(User);
             return "value";
         }
 
